@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest"] # We will add more in the future
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"] # Windows will be added in the future. But first I need to know how to install It
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout the repository
@@ -26,11 +26,58 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y llvm-19-dev clang-19 libclang-19-dev
 
+      - name: Install LLVM and Clang (windows - zig pre-built bundle)
+        if: runner.os == 'Windows'
+        run: |
+          # Update this from https://github.com/ziglang/zig/blob/master/ci/x86_64-windows-debug.ps1#L1-L4
+          $bundle_name = "zig+llvm+lld+clang-x86_64-windows-gnu-0.15.0-dev.233+7c85dc460.zip"
+          $download_url = "https://ziglang.org/deps/$bundle_name"
+          $temp_extract_dir = "C:\temp_zig_llvm_extract"
+          $final_install_dir = "C:\Program Files\LLVM"
+
+          Write-Host "Downloading Zig LLVM bundle from $download_url"
+          Invoke-WebRequest -Uri $download_url -OutFile $bundle_name
+
+          Write-Host "Extracting $bundle_name to $temp_extract_dir"
+          New-Item -ItemType Directory -Path $temp_extract_dir -Force
+          Expand-Archive -Path $bundle_name -DestinationPath $temp_extract_dir -Force
+
+          $extracted_root_content = Get-ChildItem -Path $temp_extract_dir -Directory | Where-Object { $_.Name -like "zig-windows-x86_64-*-gnu*" } | Select-Object -ExpandProperty FullName
+          $source_llvm_dir = Join-Path $extracted_root_content "llvm"
+          Write-Host "Moving LLVM contents from $source_llvm_dir to $final_install_dir"
+          New-Item -ItemType Directory -Path $final_install_dir -Force
+          Move-Item -Path "$source_llvm_dir\*" -Destination $final_install_dir -Force
+          Remove-Item -Recurse -Force $temp_extract_dir
+
+          $llvm_bin_path = Join-Path $final_install_dir "bin"
+          $llvm_lib_path = Join-Path $final_install_dir "lib"
+
+          Write-Host "Adding LLVM bin ($llvm_bin_path) and lib ($llvm_lib_path) to PATH"
+          Add-Content -Path $env:GITHUB_PATH -Value $llvm_bin_path
+          Add-Content -Path $env:GITHUB_PATH -Value $llvm_lib_path
+
+          Write-Host "Verifying LLVM installation in $final_install_dir:"
+          Get-ChildItem -Path $llvm_bin_path
+          Get-ChildItem -Path $llvm_lib_path | Where-Object { $_.Extension -eq ".lib" } | Select-Object Name, Length
+        shell: pwsh
+
+      - name: Install LLVM and Clang (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm@19
+          brew link --force llvm@19
+
+          echo "/usr/local/opt/llvm@19/bin" >> $GITHUB_PATH
+          echo "/usr/local/opt/llvm@19/lib" >> $GITHUB_PATH
+
       - name: Install Zig
         uses: mlugg/setup-zig@v2 # This uses the latest version.
 
       - name: Build
         run: zig build
+
+      - name: Run unit tests
+        run: zig build test --summary all
 
       - name: Run 'factorial' example
         run: zig build -Dexamples factorial
