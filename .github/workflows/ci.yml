@@ -32,8 +32,8 @@ jobs:
           # Update this from https://github.com/ziglang/zig/blob/master/ci/x86_64-windows-debug.ps1#L1-L4
           $bundle_name = "zig+llvm+lld+clang-x86_64-windows-gnu-0.15.0-dev.233+7c85dc460.zip"
           $download_url = "https://ziglang.org/deps/$bundle_name"
-          $temp_extract_dir = "C:\temp_zig_llvm_extract"
-          $final_install_dir = "C:\Program Files\LLVM"
+          $temp_extract_dir = "C:\temp_zig_llvm_extract" # Temporary extraction location
+          $final_install_dir = "C:\Program Files\LLVM" # The desired final location
 
           Write-Host "Downloading Zig LLVM bundle from $download_url"
           Invoke-WebRequest -Uri $download_url -OutFile $bundle_name
@@ -42,19 +42,50 @@ jobs:
           New-Item -ItemType Directory -Path $temp_extract_dir -Force
           Expand-Archive -Path $bundle_name -DestinationPath $temp_extract_dir -Force
 
-          $extracted_root_content = Get-ChildItem -Path $temp_extract_dir -Directory | Where-Object { $_.Name -like "zig-windows-x86_64-*-gnu*" } | Select-Object -ExpandProperty FullName
+          # --- Start of improved folder discovery and error handling ---
+          $extracted_root_items = Get-ChildItem -Path $temp_extract_dir -Directory
+
+          if ($extracted_root_items.Count -eq 0) {
+              Write-Error "No directory found after extracting Zig LLVM bundle to '$temp_extract_dir'."
+              Write-Host "Contents of '$temp_extract_dir':"
+              Get-ChildItem -Path $temp_extract_dir -Recurse
+              exit 1 # Fail the step
+          }
+
+          # Assuming the bundle extracts into a single top-level directory.
+          $extracted_root_content = $extracted_root_items[0].FullName
+
+          # Define the source 'llvm' directory within the extracted content
           $source_llvm_dir = Join-Path $extracted_root_content "llvm"
+
+          # Verify if the llvm directory exists before attempting to move it
+          if (-not (Test-Path $source_llvm_dir)) {
+              Write-Error "The 'llvm' directory was not found inside '$extracted_root_content'."
+              Write-Host "This usually means the bundle structure or ZIG_DEPS_LLVM_BUNDLE_VERSION is incorrect."
+              Write-Host "Contents of '$extracted_root_content':"
+              Get-ChildItem -Path $extracted_root_content -Recurse
+              exit 1 # Fail the step
+          }
+          # --- End of improved folder discovery and error handling ---
+
           Write-Host "Moving LLVM contents from $source_llvm_dir to $final_install_dir"
           New-Item -ItemType Directory -Path $final_install_dir -Force
           Move-Item -Path "$source_llvm_dir\*" -Destination $final_install_dir -Force
+
+          # Clean up the temporary extraction directory
           Remove-Item -Recurse -Force $temp_extract_dir
 
+          # Now, define the bin and lib paths within the final installation directory
           $llvm_bin_path = Join-Path $final_install_dir "bin"
           $llvm_lib_path = Join-Path $final_install_dir "lib"
 
           Write-Host "Adding LLVM bin ($llvm_bin_path) and lib ($llvm_lib_path) to PATH"
           Add-Content -Path $env:GITHUB_PATH -Value $llvm_bin_path
           Add-Content -Path $env:GITHUB_PATH -Value $llvm_lib_path
+
+          # Optional: Set LLVM_DIR and LIBCLANG_PATH environment variables
+          echo "LLVM_DIR=$final_install_dir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "LIBCLANG_PATH=$(Join-Path $llvm_bin_path "libclang.dll")" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
           Write-Host "Verifying LLVM installation in $final_install_dir"
           Get-ChildItem -Path $llvm_bin_path
