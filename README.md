@@ -1,6 +1,7 @@
 # Zig bindings for LLVM and libclang
 [![GitHub License](https://img.shields.io/github/license/KN-langos/llvm-zig-bindings)]()
 [![GitHub Repo stars](https://img.shields.io/github/stars/KN-langos/llvm-zig-bindings)]()
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/KN-langos/llvm-zig-bindings/ci.yml?label=CI%20Tests)]()
 
 This zig library provides zig-style bindings for LLVM and libclang.
 
@@ -43,3 +44,8 @@ To run examples just use the following zig command:
 ```bash
 zig build -Dexamples <example name> // e.g. zig build -Dexample playground
 ```
+
+## What about tests?
+This project does not contain tests at the moment.
+We plan on having partial coverage (especially all builder functions and emission related features),
+but as with the rest of this codebase, we will only test what we need internally.

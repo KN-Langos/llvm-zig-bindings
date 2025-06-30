@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) !void {
 
     // Link with llvm.
     switch (target.result.os.tag) {
-        .linux => llvm_bindings_module.linkSystemLibrary("LLVM-20", .{}),
+        .linux => llvm_bindings_module.linkSystemLibrary("LLVM-19", .{}),
         .macos => {
             llvm_bindings_module.addLibraryPath(.{
                 .cwd_relative = "/opt/homebrew/opt/llvm/lib",
@@ -57,7 +57,7 @@ pub fn build(b: *std.Build) !void {
 
     // Link with libclang.
     switch (target.result.os.tag) {
-        .linux => libclang_bindings_module.linkSystemLibrary("clang-20", .{}),
+        .linux => libclang_bindings_module.linkSystemLibrary("clang-19", .{}),
         .macos => {
             libclang_bindings_module.addLibraryPath(.{
                 .cwd_relative = "/opt/homebrew/opt/llvm/lib",
