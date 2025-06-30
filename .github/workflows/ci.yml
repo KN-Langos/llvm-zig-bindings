@@ -65,6 +65,11 @@ jobs:
               exit 1 # Fail the step
           }
 
+          Write-Host "Cleaning up existing LLVM installation in $final_install_dir (if any)..."
+          if (Test-Path $final_install_dir) {
+              Remove-Item -Recurse -Force $final_install_dir
+          }
+
           Write-Host "Moving LLVM contents from $extracted_bundle_root to $final_install_dir"
           New-Item -ItemType Directory -Path $final_install_dir -Force
           # Move the *contents* (files and subdirectories like bin, lib, include)
