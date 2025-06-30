@@ -39,7 +39,7 @@ pub fn main() !void {
     const sum_fn = module.addFunction("sum", fn_type);
     const entry_bb = sum_fn.appendBasicBlock("entry");
 
-    const builder = llvm.builder.Builder.create();
+    const builder = ctx.createBuilder();
     defer builder.dispose();
 
     builder.positionAtEnd(entry_bb);

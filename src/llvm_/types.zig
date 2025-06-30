@@ -1,3 +1,5 @@
+const builder = @import("builder.zig");
+
 pub const Type = opaque {
     pub fn functionType(return_type: *Type, param_types: []const *const Type, is_vararg: bool) *Type {
         return LLVMFunctionType(return_type, param_types.ptr, @truncate(param_types.len), Bool.fromBool(is_vararg));
@@ -59,4 +61,7 @@ pub const Context = opaque {
 
     pub const metadataType = LLVMMetadataTypeInContext;
     extern fn LLVMMetadataTypeInContext(C: *Context) *Type;
+
+    pub const createBuilder = LLVMCreateBuilderInContext;
+    extern fn LLVMCreateBuilderInContext(C: *Context) *builder.Builder;
 };
