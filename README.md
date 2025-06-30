@@ -11,13 +11,10 @@ nor that there will be no breaking changes on the main branch.
 
 ## Requirements
 Using this library requires the following to be available on the system:
-- LLVM-C (preferably version 20, but older seem to work correctly),
+- LLVM-C (preferably version 19),
 - libclang,
 - zstd,
 - ole32 (for windows).
-
-**IMPORTANT:** This library has not yet been tested on linux and macos,
-but it will be during later development process.
 
 ## Usage
 To add this library to your zig project, first use this zig command:
@@ -49,3 +46,11 @@ zig build -Dexamples <example name> // e.g. zig build -Dexample playground
 This project does not contain tests at the moment.
 We plan on having partial coverage (especially all builder functions and emission related features),
 but as with the rest of this codebase, we will only test what we need internally.
+
+## TODO/Done
+- [x] Basic llvm bindings for target and module
+- [x] Basic builder functions
+- [ ] Debug information and other metadata
+- [ ] Validation and asm emission
+- [ ] Bindings to libclang
+- [ ] Unit tests
