@@ -169,7 +169,7 @@ pub const Builder = opaque {
     extern fn LLVMBuildLoad2(self: *Builder, ty: *types.Type, ptr: *Value, name: [*:0]const u8) *Value;
 
     pub const buildStore = LLVMBuildStore;
-    extern fn LLVMBuildStore(self: *Builder, val: *Value, ptr: *Value, name: [*:0]const u8) *Value;
+    extern fn LLVMBuildStore(self: *Builder, val: *Value, ptr: *Value) *Value;
 
     pub fn buildGEP(
         self: *Builder,
@@ -331,7 +331,7 @@ pub const Builder = opaque {
     // TODO: Fences and atomics
 };
 
-pub const IntCmpOp = enum(c_uint) { EQ, NE, UGT, UGE, ULT, ULE, SGT, SGE, SLT, SLE };
+pub const IntCmpOp = enum(c_uint) { EQ = 32, NE, UGT, UGE, ULT, ULE, SGT, SGE, SLT, SLE };
 pub const FPCmpOp = enum(c_uint) { PredicateFalse, OEQ, OGT, OGE, OLT, OLE, ONE, ORD, UNO, UEQ, UGT, UGE, ULT, ULE, UNE, PredicateTrue };
 
 pub const Constant = opaque {

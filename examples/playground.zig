@@ -49,4 +49,6 @@ pub fn main() !void {
     _ = builder.buildRet(sum);
 
     module.dump();
+
+    llvm.LLVMShutdown();
 }

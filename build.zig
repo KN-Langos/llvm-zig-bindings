@@ -90,6 +90,11 @@ pub fn build(b: *std.Build) !void {
             .target = target,
             .optimize = optimize,
         });
+        buildExample(b, .{
+            .filepath = "examples/factorial.zig",
+            .target = target,
+            .optimize = optimize,
+        });
     }
 }
 
