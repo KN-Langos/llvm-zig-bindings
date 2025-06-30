@@ -8,7 +8,7 @@ pub const Target = opaque {
 
     pub fn fromTriple(triple: [*:0]const u8) *Target {
         var T: *Target = undefined;
-        var err: [*:0]const u8 = &.{};
+        var err: [*:0]const u8 = undefined;
         if (LLVMGetTargetFromTriple(triple, &T, &err).toBool()) {
             std.debug.print("Error message from LLVMGetTargetFromTriple: {s}", .{err});
             @panic("LLVMGetTargetFromTriple failed.");
