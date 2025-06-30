@@ -56,7 +56,7 @@ jobs:
           Add-Content -Path $env:GITHUB_PATH -Value $llvm_bin_path
           Add-Content -Path $env:GITHUB_PATH -Value $llvm_lib_path
 
-          Write-Host "Verifying LLVM installation in $final_install_dir:"
+          Write-Host "Verifying LLVM installation in $final_install_dir"
           Get-ChildItem -Path $llvm_bin_path
           Get-ChildItem -Path $llvm_lib_path | Where-Object { $_.Extension -eq ".lib" } | Select-Object Name, Length
         shell: pwsh
