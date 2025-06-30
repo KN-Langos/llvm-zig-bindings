@@ -13,7 +13,7 @@ pub fn main() !void {
     const target = llvm.target.Target.fromTriple(native_triple);
 
     // Define architecture as X86 and initialize It. This will be replaced by target.getArch() in the future.
-    const arch = if (@import("builtin").target.os.tag == .macos) llvm.target.TargetArch.ARM else llvm.target.TargetArch.X86;
+    const arch = if (@import("builtin").target.os.tag == .macos) llvm.target.TargetArch.AArch64 else llvm.target.TargetArch.X86;
     arch.initFull();
 
     // Create target machine, "generic" is cpu (for specialized instructions) and "" are available cpu features.

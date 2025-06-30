@@ -70,9 +70,10 @@ pub fn build(b: *std.Build) !void {
             libclang_bindings_module.addLibraryPath(.{
                 .cwd_relative = "C:\\Program Files\\LLVM\\lib",
             });
-            libclang_bindings_module.linkSystemLibrary("libclang", .{
-                .use_pkg_config = .no,
-            });
+            for (clang_libs) |lib_name|
+                libclang_bindings_module.linkSystemLibrary(lib_name, .{
+                    .use_pkg_config = .no,
+                });
         },
         else => {
             std.debug.print("Invalid target OS. Supported ones are currently: Linux, MacOS, Windows.", .{});
@@ -159,6 +160,37 @@ fn buildTests(b: *std.Build, target: std.Build.ResolvedTarget) !void {
 }
 
 // These are yoinked from zig source-code.
+const clang_libs = [_][]const u8{
+    "clangFrontendTool",
+    "clangCodeGen",
+    "clangFrontend",
+    "clangDriver",
+    "clangSerialization",
+    "clangSema",
+    "clangStaticAnalyzerFrontend",
+    "clangStaticAnalyzerCheckers",
+    "clangStaticAnalyzerCore",
+    "clangAnalysis",
+    "clangASTMatchers",
+    "clangAST",
+    "clangParse",
+    "clangSema",
+    "clangAPINotes",
+    "clangBasic",
+    "clangEdit",
+    "clangLex",
+    "clangARCMigrate",
+    "clangRewriteFrontend",
+    "clangRewrite",
+    "clangCrossTU",
+    "clangIndex",
+    "clangToolingCore",
+    "clangExtractAPI",
+    "clangSupport",
+    "clangInstallAPI",
+    "clangAST",
+};
+
 const lld_libs = [_][]const u8{
     "lldMinGW",
     "lldELF",
