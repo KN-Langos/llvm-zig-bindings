@@ -2,20 +2,6 @@ const builder = @import("builder.zig");
 const target = @import("target.zig");
 const types = @import("types.zig");
 
-pub const Context = opaque {
-    pub const create = LLVMContextCreate;
-    extern fn LLVMContextCreate() *Context;
-
-    pub const dispose = LLVMContextDispose;
-    extern fn LLVMContextDispose(C: *Context) void;
-
-    pub const intType = LLVMIntTypeInContext;
-    extern fn LLVMIntTypeInContext(C: *Context, NumBits: c_uint) *types.Type;
-
-    pub const voidType = LLVMVoidTypeInContext;
-    extern fn LLVMVoidTypeInContext(C: *Context) *types.Type;
-};
-
 pub const Module = opaque {
     pub const createWithName = LLVMModuleCreateWithName;
     extern fn LLVMModuleCreateWithName(ModuleID: [*:0]const u8) *Module;
