@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const module = @import("module.zig");
 const types = @import("types.zig");
 
 pub const Target = opaque {
@@ -53,7 +54,25 @@ pub const TargetMachine = opaque {
 
     pub const createTargetDataLayout = LLVMCreateTargetDataLayout;
     extern fn LLVMCreateTargetDataLayout(*TargetMachine) *TargetData;
+
+    pub fn emitModuleToFile(self: *TargetMachine, mod: *module.Module, filename: [*:0]const u8, codegen: CodegenType) bool {
+        var err: [*:0]const u8 = undefined;
+        if (LLVMTargetMachineEmitToFile(self, mod, filename, codegen, &err).toBool()) {
+            std.debug.print("Error message from LLVMTargetMachineEmitToFile: {s}", .{err});
+            return false;
+        }
+        return true;
+    }
+    extern fn LLVMTargetMachineEmitToFile(
+        T: *TargetMachine,
+        M: *module.Module,
+        Filename: [*:0]const u8,
+        codegen: CodegenType,
+        ErrorMessage: *[*:0]const u8,
+    ) types.Bool;
 };
+
+pub const CodegenType = enum(c_int) { AssemblyFile, ObjectFile };
 
 pub const CodeModel = enum(c_int) {
     Default,

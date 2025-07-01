@@ -51,6 +51,6 @@ but as with the rest of this codebase, we will only test what we need internally
 - [x] Basic llvm bindings for target and module
 - [x] Basic builder functions
 - [ ] Debug information and other metadata
-- [ ] Validation and asm emission
+- [x] Validation and asm emission
 - [ ] Bindings to libclang
 - [ ] Unit tests

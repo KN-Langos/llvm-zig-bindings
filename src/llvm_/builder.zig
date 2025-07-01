@@ -1,6 +1,9 @@
 const types = @import("types.zig");
 
-pub const Value = opaque {};
+pub const Value = opaque {
+    pub const setInstCC = LLVMSetInstructionCallConv;
+    extern fn LLVMSetInstructionCallConv(Instr: *Value, CC: CallConv) void;
+};
 
 pub const FnValue = opaque {
     pub const appendBasicBlock = LLVMAppendBasicBlock;
@@ -12,6 +15,45 @@ pub const FnValue = opaque {
     pub inline fn asValue(self: *FnValue) *Value {
         return @ptrCast(self);
     }
+
+    pub const setCC = LLVMSetFunctionCallConv;
+    extern fn LLVMSetFunctionCallConv(Fn: *FnValue, CC: CallConv) void;
+};
+
+pub const GlobalValue = opaque {
+    pub const getInitializer = LLVMGetInitializer;
+    extern fn LLVMGetInitializer(GlobalVar: *GlobalValue) *Value;
+
+    pub const setInitializer = LLVMSetInitializer;
+    extern fn LLVMSetInitializer(GlobalVar: *GlobalValue, ConstantVal: *Value) void;
+
+    pub inline fn asValue(self: *GlobalValue) *Value {
+        return @ptrCast(self);
+    }
+
+    pub const getSection = LLVMGetSection;
+    extern fn LLVMGetSection(Global: *GlobalValue) [*:0]const u8;
+
+    pub const setSection = LLVMSetSection;
+    extern fn LLVMSetSection(Global: *GlobalValue, Section: [*:0]const u8) void;
+};
+
+pub const CallConv = enum(c_int) {
+    C = 0,
+    Fast = 8,
+    Cold,
+    GHC,
+    HiPE,
+    AnyReg = 13,
+    PreserveMost,
+    PreserveAll,
+    Swift,
+    CXX_FAST_TLS,
+    Tail,
+    CFGuardCheck,
+    SwiftTail,
+    PreserveNone,
+    _,
 };
 
 pub const SwitchValue = opaque {

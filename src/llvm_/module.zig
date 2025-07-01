@@ -24,4 +24,10 @@ pub const Module = opaque {
     }
     pub const VerifierFailureAction = enum(c_int) { AbortProcess, PrintMessage, ReturnStatus };
     extern fn LLVMVerifyModule(module: *Module, action: VerifierFailureAction, message: *[*:0]const u8) types.Bool;
+
+    pub const addGlobal = LLVMAddGlobal;
+    extern fn LLVMAddGlobal(M: *Module, Ty: *types.Type, Name: [*:0]const u8) *builder.GlobalValue;
+
+    pub const getNamedGlobal = LLVMGetNamedGlobal;
+    extern fn LLVMGetNamedGlobal(M: *Module, Name: [*:0]const u8) *builder.GlobalValue;
 };
