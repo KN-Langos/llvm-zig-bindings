@@ -34,7 +34,7 @@ pub fn main() !void {
     // Create context and module.
     const ctx = llvm.types.Context.create();
     defer ctx.dispose();
-    const module = llvm.module.Module.createWithName("factorial_module");
+    const module = ctx.createModuleWithName("factorial_module");
     defer module.dispose();
 
     // Create builder.
@@ -96,7 +96,12 @@ pub fn main() !void {
     module.setDataLayout(target_layout);
     module.setTargetTriple(native_triple);
 
-    // TODO: Verify module.
+    // Verify that the module is correct.
+    if (module.verifyModuleAndPrintStderr()) {
+        std.debug.print("Module verified successfully.\n", .{});
+    } else {
+        std.debug.print("\x1B[91mModule verification failed.\x1B[0m\n", .{});
+    }
 
     // Print module IR to stdout and clean up.
     module.dump();

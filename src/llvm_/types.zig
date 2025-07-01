@@ -1,4 +1,5 @@
 const builder = @import("builder.zig");
+const module = @import("module.zig");
 
 pub const Type = opaque {
     pub fn functionType(return_type: *Type, param_types: []const *const Type, is_vararg: bool) *Type {
@@ -24,12 +25,18 @@ pub const Bool = enum(c_int) {
     }
 };
 
+// Maybe context should have its own file?
 pub const Context = opaque {
     pub const create = LLVMContextCreate;
     extern fn LLVMContextCreate() *Context;
 
     pub const dispose = LLVMContextDispose;
     extern fn LLVMContextDispose(C: *Context) void;
+
+    pub fn createModuleWithName(self: *Context, name: [*:0]const u8) *module.Module {
+        return LLVMModuleCreateWithNameInContext(name, self);
+    }
+    extern fn LLVMModuleCreateWithNameInContext(ModuleID: [*:0]const u8, C: *Context) *module.Module;
 
     pub const intType = LLVMIntTypeInContext;
     extern fn LLVMIntTypeInContext(C: *Context, NumBits: c_uint) *Type;

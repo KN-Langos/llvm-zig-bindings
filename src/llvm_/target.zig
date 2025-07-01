@@ -11,7 +11,7 @@ pub const Target = opaque {
         var err: [*:0]const u8 = undefined;
         if (LLVMGetTargetFromTriple(triple, &T, &err).toBool()) {
             std.debug.print("Error message from LLVMGetTargetFromTriple: {s}", .{err});
-            @panic("LLVMGetTargetFromTriple failed.");
+            @panic("LLVMGetTargetFromTriple failed."); // Error leaks here, but who cares if program panics.
         }
         return T;
     }

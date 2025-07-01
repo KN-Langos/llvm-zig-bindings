@@ -26,7 +26,7 @@ pub fn main() !void {
 
     const ctx = llvm.types.Context.create();
     defer ctx.dispose();
-    const module = llvm.module.Module.createWithName("playground_module");
+    const module = ctx.createModuleWithName("playground_module");
     defer module.dispose();
 
     module.setDataLayout(target_layout);
