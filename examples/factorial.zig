@@ -32,7 +32,7 @@ pub fn main() !void {
     defer target_layout.dispose();
 
     // Create context and module.
-    const ctx = llvm.types.Context.create();
+    const ctx = llvm.context.Context.create();
     defer ctx.dispose();
     const module = ctx.createModuleWithName("factorial_module");
     defer module.dispose();
