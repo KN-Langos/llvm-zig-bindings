@@ -26,22 +26,40 @@ pub fn main() !void {
 
     const ctx = llvm.context.Context.create();
     defer ctx.dispose();
-    const module = ctx.createModuleWithName("playground_module");
-    defer module.dispose();
 
-    module.setDataLayout(target_layout);
-    module.setTargetTriple(native_triple);
+    const util_module = buildUtilityModule(ctx, target_layout, native_triple);
+    // No dispose, because link2 already disposes the source module.
 
-    // Build functions
-    const fn_type = llvm.types.Type.functionType(ctx.intType(32), &.{
-        ctx.intType(32),
-        ctx.intType(32),
+    const main_module = buildMainModule(ctx, target_layout, native_triple);
+    defer main_module.dispose();
+
+    // Link modules together.
+    _ = llvm.linker.Linker.link2(main_module, util_module);
+
+    // Dump main module and emit asm.
+    main_module.dump();
+
+    try emitAsmFile(main_module, machine);
+
+    llvm.LLVMShutdown();
+}
+
+fn buildUtilityModule(cx: *llvm.context.Context, layout: *llvm.target.TargetData, triple: [*:0]const u8) *llvm.module.Module {
+    const module = cx.createModuleWithName("utils");
+
+    module.setDataLayout(layout);
+    module.setTargetTriple(triple);
+
+    // "sum" function.
+    const fn_type = llvm.types.Type.functionType(cx.intType(32), &.{
+        cx.intType(32),
+        cx.intType(32),
     }, false);
     const sum_fn = module.addFunction("sum", fn_type);
     sum_fn.setCC(.Fast);
     const entry_bb = sum_fn.appendBasicBlock("entry");
 
-    const builder = ctx.createBuilder();
+    const builder = cx.createBuilder();
     defer builder.dispose();
 
     builder.positionAtEnd(entry_bb);
@@ -50,21 +68,40 @@ pub fn main() !void {
     const sum = builder.buildAdd(a, b, "sum");
     _ = builder.buildRet(sum);
 
-    const start_fn_type = llvm.types.Type.functionType(ctx.intType(32), &.{}, false);
+    return module;
+}
+
+fn buildMainModule(cx: *llvm.context.Context, layout: *llvm.target.TargetData, triple: [*:0]const u8) *llvm.module.Module {
+    const module = cx.createModuleWithName("main");
+
+    module.setDataLayout(layout);
+    module.setTargetTriple(triple);
+
+    const start_fn_type = llvm.types.Type.functionType(cx.intType(32), &.{}, false);
     const start_fn = module.addFunction("_start", start_fn_type);
     const start_entry_bb = start_fn.appendBasicBlock("entry");
 
+    const builder = cx.createBuilder();
+    defer builder.dispose();
+
+    const sum_fn_type = llvm.types.Type.functionType(cx.intType(32), &.{
+        cx.intType(32),
+        cx.intType(32),
+    }, false);
+    const sum_fn_decl = module.addFunction("sum", sum_fn_type);
+
     builder.positionAtEnd(start_entry_bb);
-    const sum2 = builder.buildCall(fn_type, sum_fn.asValue(), &.{
-        llvm.builder.Constant.constInt(ctx.intType(32), 2, false),
-        llvm.builder.Constant.constInt(ctx.intType(32), 3, false),
+    const sum2 = builder.buildCall(sum_fn_type, sum_fn_decl.asValue(), &.{
+        llvm.builder.Constant.constInt(cx.intType(32), 2, false),
+        llvm.builder.Constant.constInt(cx.intType(32), 3, false),
     }, "add_res");
     sum2.setInstCC(.Fast); // Is this necessary?
     _ = builder.buildRet(sum2);
 
-    // Dump and generate asm.
-    module.dump();
+    return module;
+}
 
+fn emitAsmFile(module: *llvm.module.Module, machine: *llvm.target.TargetMachine) !void {
     const cwd_parent = try std.fs.cwd().realpathAlloc(std.heap.c_allocator, ".");
     const out_dir = try std.fs.path.join(std.heap.c_allocator, &.{ cwd_parent, "ignore-me" });
     std.heap.c_allocator.free(cwd_parent);
@@ -80,8 +117,6 @@ pub fn main() !void {
     defer std.heap.c_allocator.free(out_c[0..out_file.len :0]);
 
     _ = machine.emitModuleToFile(module, out_c, .AssemblyFile);
-
-    llvm.LLVMShutdown();
 }
 
 fn toSentinel(str: []const u8, allocator: std.mem.Allocator) ![*:0]const u8 {

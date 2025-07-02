@@ -4,6 +4,7 @@ pub const module = @import("llvm_/module.zig");
 pub const pass = @import("llvm_/pass.zig");
 pub const target = @import("llvm_/target.zig");
 pub const types = @import("llvm_/types.zig");
+pub const linker = @import("llvm_/linker.zig");
 
 pub extern fn LLVMShutdown() void;
 pub extern fn LLVMDisposeMessage(Message: [*:0]const u8) void;
