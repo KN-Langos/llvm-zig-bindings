@@ -26,7 +26,7 @@ pub const PassBuilderOptions = opaque {
     extern fn LLVMDisposePassBuilderOptions(Options: *PassBuilderOptions) void;
 
     pub fn runOnModule(
-        self: PassBuilderOptions,
+        self: *PassBuilderOptions,
         mod: *module.Module,
         target_machine: *target.TargetMachine,
         passes: [*:0]const u8,

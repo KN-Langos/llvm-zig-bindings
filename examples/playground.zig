@@ -36,6 +36,11 @@ pub fn main() !void {
     // Link modules together.
     _ = llvm.linker.Linker.link2(main_module, util_module);
 
+    // Run optimization passes.
+    const pm = llvm.pass.PassBuilderOptions.create();
+    defer pm.dispose();
+    _ = pm.runOnModule(main_module, machine, "default<O3>");
+
     // Dump main module and emit asm.
     main_module.dump();
 
@@ -57,6 +62,7 @@ fn buildUtilityModule(cx: *llvm.context.Context, layout: *llvm.target.TargetData
     }, false);
     const sum_fn = module.addFunction("sum", fn_type);
     sum_fn.setCC(.Fast);
+    sum_fn.asGlobal().setLinkage(.LinkOnceODR);
     const entry_bb = sum_fn.appendBasicBlock("entry");
 
     const builder = cx.createBuilder();

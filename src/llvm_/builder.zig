@@ -16,6 +16,10 @@ pub const FnValue = opaque {
         return @ptrCast(self);
     }
 
+    pub inline fn asGlobal(self: *FnValue) *GlobalValue {
+        return @ptrCast(self);
+    }
+
     pub const setCC = LLVMSetFunctionCallConv;
     extern fn LLVMSetFunctionCallConv(Fn: *FnValue, CC: CallConv) void;
 };
@@ -36,6 +40,32 @@ pub const GlobalValue = opaque {
 
     pub const setSection = LLVMSetSection;
     extern fn LLVMSetSection(Global: *GlobalValue, Section: [*:0]const u8) void;
+
+    pub const getLinkage = LLVMGetLinkage;
+    extern fn LLVMGetLinkage(Global: *GlobalValue) Linkage;
+
+    pub const setLinkage = LLVMSetLinkage;
+    extern fn LLVMSetLinkage(Global: *GlobalValue, Linkage: Linkage) void;
+};
+
+pub const Linkage = enum(c_int) {
+    External,
+    AvailableExternally,
+    LinkOnceAny,
+    LinkOnceODR,
+    LinkOnceODRAutoHide,
+    WeakAny,
+    WeakODR,
+    Appending,
+    Internal,
+    Private,
+    DLLImport,
+    DLLExport,
+    ExternalWeak,
+    Ghost,
+    Common,
+    LinkerPrivate,
+    LinkerPrivateWeak,
 };
 
 pub const CallConv = enum(c_int) {
@@ -255,9 +285,9 @@ pub const Builder = opaque {
     extern fn LLVMBuildStructGEP2(self: *Builder, ty: *types.Type, ptr: *Value, index: c_uint, name: [*:0]const u8) *Value;
 
     pub const buildGlobalString = LLVMBuildGlobalString;
-    extern fn LLVMBuildGlobalString(self: *Builder, content: [*:0]const u8, name: [*:0]const u8) *Value;
+    extern fn LLVMBuildGlobalString(self: *Builder, content: [*:0]const u8, name: [*:0]const u8) *GlobalValue;
     pub const buildGlobalStringPtr = LLVMBuildGlobalStringPtr;
-    extern fn LLVMBuildGlobalStringPtr(self: *Builder, content: [*:0]const u8, name: [*:0]const u8) *Value;
+    extern fn LLVMBuildGlobalStringPtr(self: *Builder, content: [*:0]const u8, name: [*:0]const u8) *GlobalValue;
 
     pub const buildTrunc = LLVMBuildTrunc;
     extern fn LLVMBuildTrunc(self: *Builder, val: *Value, dest_ty: *types.Type, name: [*:0]const u8) *Value;
